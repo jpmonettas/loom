@@ -52,31 +52,33 @@
         (.append "  graph ")
         (.append (dot-attrs (:graph opts)))))
     (doseq [[n1 n2] (distinct-edges g)]
-      (let [n1l (str (or (node-label n1) n1))
-            n2l (str (or (node-label n2) n2))
-            el (if w? (weight g n1 n2) (edge-label n1 n2))
+      (let [el (if w? (weight g n1 n2) (edge-label n1 n2))
             eattrs (assoc (if (attr? g)
                             (attrs g n1 n2) {})
                      :label el)]
         (doto sb
           (.append "  \"")
-          (.append (dot-esc n1l))
+          (.append (dot-esc (str n1)))
           (.append (if d? "\" -> \"" "\" -- \""))
-          (.append (dot-esc n2l))
+          (.append (dot-esc (str n2)))
           (.append \"))
         (when (or (:label eattrs) (< 1 (count eattrs)))
           (.append sb \space)
           (.append sb (dot-attrs eattrs)))
         (.append sb "\n")))
     (doseq [n (nodes g)]
-      (doto sb
-        (.append "  \"")
-        (.append (dot-esc (str (or (node-label n) n))))
-        (.append \"))
-      (when-let [nattrs (when (attr? g)
-                          (dot-attrs (attrs g n)))]
+      (let [nl (str (or (node-label n) n))
+            nattrs (dot-attrs (assoc (if (attr? g)
+                                       (attrs g n)
+                                       {})
+                                :label nl))]
+        (doto sb
+          (.append "  \"")
+          (.append (dot-esc (str  n)))
+          (.append \"))
         (.append sb \space)
         (.append sb nattrs))
+
       (.append sb "\n"))
     (str (doto sb (.append "}")))))
 
